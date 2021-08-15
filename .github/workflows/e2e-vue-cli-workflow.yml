@@ -1,0 +1,37 @@
+on:
+  schedule:
+  - cron: '0 */4 * * *'
+  push:
+    branches:
+    - master
+  pull_request:
+    paths:
+    - .github/workflows/e2e-vue-cli-workflow.yml
+    - scripts/e2e-setup-ci.sh
+
+name: 'E2E Vue-CLI'
+jobs:
+  chore:
+    name: 'Validating Vue-CLI'
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@master
+
+    - name: 'Install Node'
+      uses: actions/setup-node@master
+      with:
+        node-version: 14.x
+
+    - name: 'Build the standard bundle'
+      run: |
+        node ./scripts/run-yarn.js build:cli
+
+    - name: 'Running the integration test'
+      run: |
+        source scripts/e2e-setup-ci.sh
+
+        echo '{"useTaobaoRegistry": false}' | tee ~/.vuerc
+
+        yarn dlx @vue/cli create -d my-vue && cd my-vue
+        yarn build
